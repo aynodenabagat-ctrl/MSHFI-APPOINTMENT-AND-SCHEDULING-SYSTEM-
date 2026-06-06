@@ -30,6 +30,11 @@ $stmt->execute();
 $confirmedToday = (int)$stmt->fetchColumn();
 
 $totalAppointments = (int)$pdo->query("SELECT COUNT(*) FROM appointments")->fetchColumn();
+
+$csrfToken = generateCsrfToken();
+
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']);
 ?>
 <?php require_once __DIR__ . '/../../includes/header.php'; ?>
 
@@ -87,21 +92,56 @@ $totalAppointments = (int)$pdo->query("SELECT COUNT(*) FROM appointments")->fetc
     </div>
 </div>
 
-<!-- Secondary stats -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-6">
-        <div class="card text-center py-3">
-            <div class="fw-bold text-info" style="font-size: 1.3rem;"><?= $confirmedToday ?></div>
-            <div class="text-muted small">Confirmed Today</div>
+<!-- Quick Actions -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-lightning me-2"></i>Quick Actions</div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="appointments.php" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 px-0">
+                        <span style="width: 40px; height: 40px; border-radius: 10px; background: #dbeafe; display: flex; align-items: center; justify-content: center; color: #1d4ed8;">
+                            <i class="bi bi-calendar-event"></i>
+                        </span>
+                        <div><div class="fw-semibold">All Appointments</div><small class="text-muted">View and manage all appointments</small></div>
+                    </a>
+                    <a href="register_patient.php" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 px-0">
+                        <span style="width: 40px; height: 40px; border-radius: 10px; background: #d1fae5; display: flex; align-items: center; justify-content: center; color: #065f46;">
+                            <i class="bi bi-person-plus"></i>
+                        </span>
+                        <div><div class="fw-semibold">Register Patient</div><small class="text-muted">Add a new patient account</small></div>
+                    </a>
+                    <a href="notifications.php" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 px-0">
+                        <span style="width: 40px; height: 40px; border-radius: 10px; background: #fef3c7; display: flex; align-items: center; justify-content: center; color: #92400e;">
+                            <i class="bi bi-bell"></i>
+                        </span>
+                        <div><div class="fw-semibold">Notifications</div><small class="text-muted">View your notifications</small></div>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="card text-center py-3">
-            <div class="fw-bold text-primary" style="font-size: 1.3rem;"><?= $totalAppointments ?></div>
-            <div class="text-muted small">All Time</div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-pie-chart me-2"></i>Overview</div>
+            <div class="card-body d-flex align-items-center justify-content-around text-center">
+                <div>
+                    <div class="fw-bold text-primary" style="font-size: 1.75rem;"><?= $confirmedToday ?></div>
+                    <div class="text-muted small">Confirmed Today</div>
+                </div>
+                <div class="vr"></div>
+                <div>
+                    <div class="fw-bold text-primary" style="font-size: 1.75rem;"><?= $totalAppointments ?></div>
+                    <div class="text-muted small">Total All Time</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<?php if ($flash): ?>
+<script>showToast('<?= addslashes($flash['message']) ?>', '<?= $flash['type'] ?>');</script>
+<?php endif; ?>
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -111,7 +151,7 @@ $totalAppointments = (int)$pdo->query("SELECT COUNT(*) FROM appointments")->fetc
     <div class="card-body p-0">
         <?php if (empty($todayAppts)): ?>
             <div class="text-center py-5">
-                <i class="bi bi-calendar-check text-muted" style="font-size: 3rem;"></i>
+                <i class="bi bi-calendar-check text-muted display-6"></i>
                 <p class="text-muted mt-2 mb-0">No appointments for today.</p>
             </div>
         <?php else: ?>
@@ -142,10 +182,18 @@ $totalAppointments = (int)$pdo->query("SELECT COUNT(*) FROM appointments")->fetc
                             <td class="text-end">
                                 <div class="d-flex gap-1 justify-content-end">
                                     <?php if ($appt['status'] === 'pending'): ?>
-                                        <a href="confirm.php?id=<?= $appt['id'] ?>" class="btn btn-sm btn-primary"><i class="bi bi-check"></i> Confirm</a>
+                                        <form method="POST" action="confirm.php" style="display:inline">
+                                            <input type="hidden" name="id" value="<?= $appt['id'] ?>">
+                                            <input type="hidden" name="_csrf_token" value="<?= $csrfToken ?>">
+                                            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check"></i> Confirm</button>
+                                        </form>
                                     <?php endif; ?>
                                     <?php if ($appt['status'] !== 'cancelled' && $appt['status'] !== 'completed'): ?>
-                                        <a href="cancel.php?id=<?= $appt['id'] ?>" class="btn btn-sm btn-outline-danger" data-confirm="Cancel this appointment?"><i class="bi bi-x"></i> Cancel</a>
+                                        <form method="POST" action="cancel.php" style="display:inline">
+                                            <input type="hidden" name="id" value="<?= $appt['id'] ?>">
+                                            <input type="hidden" name="_csrf_token" value="<?= $csrfToken ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="Cancel this appointment?"><i class="bi bi-x"></i> Cancel</button>
+                                        </form>
                                     <?php endif; ?>
                                 </div>
                             </td>
