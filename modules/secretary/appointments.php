@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
-requireRole('secretary');
+requireRole(['secretary', 'admin']);
 
 require_once __DIR__ . '/../../config/database.php';
 

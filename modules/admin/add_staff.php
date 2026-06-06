@@ -38,10 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="card-body p-4">
                 <h4 class="mb-4"><i class="bi bi-person-plus"></i> Add New Staff</h4>
                 <?php if ($success): ?>
-                    <div class="alert alert-success"><?= $success ?></div>
+                    <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
                 <?php endif; ?>
                 <?php if ($error): ?>
-                    <div class="alert alert-danger"><?= $error ?></div>
+                    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
                 <?php endif; ?>
                 <form method="POST">
                     <div class="row">

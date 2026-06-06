@@ -4,6 +4,8 @@ requireRole('admin');
 
 require_once __DIR__ . '/../../config/database.php';
 
+$csrfToken = generateCsrfToken();
+
 $stmt = $pdo->query("
     SELECT u.id, u.username, u.email, u.first_name, u.last_name, u.role, u.created_at
     FROM users u
@@ -12,9 +14,11 @@ $stmt = $pdo->query("
 $users = $stmt->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
-    $id = (int)$_POST['delete_user'];
-    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND role != 'admin'");
-    $stmt->execute([$id]);
+    if (validateCsrfToken($_POST['_csrf_token'] ?? '')) {
+        $id = (int)$_POST['delete_user'];
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND role != 'admin'");
+        $stmt->execute([$id]);
+    }
     header('Location: manage_users.php');
     exit;
 }
@@ -54,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
                         <td>
                             <?php if ($u['role'] !== 'admin'): ?>
                                 <form method="POST" style="display:inline">
+                                    <input type="hidden" name="_csrf_token" value="<?= $csrfToken ?>">
                                     <button type="submit" name="delete_user" value="<?= $u['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this user permanently?')">Delete</button>
                                 </form>
                             <?php else: ?>
