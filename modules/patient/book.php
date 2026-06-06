@@ -15,7 +15,6 @@ if (!$patient) {
     exit;
 }
 
-// Get doctors
 $doctors = $pdo->query("SELECT d.*, u.email FROM doctors d JOIN users u ON d.user_id = u.id")->fetchAll();
 
 $success = '';
@@ -45,40 +44,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <?php require_once __DIR__ . '/../../includes/header.php'; ?>
 
+<div class="dashboard-header">
+    <h3><i class="bi bi-plus-circle text-primary me-2"></i>Book an Appointment</h3>
+    <p class="text-muted">Fill in the details below to schedule your appointment with a specialist.</p>
+</div>
+
+<?php if ($success): ?>
+    <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i><?= $success ?></div>
+<?php endif; ?>
+<?php if ($error): ?>
+    <div class="alert alert-danger"><i class="bi bi-exclamation-circle-fill me-2"></i><?= $error ?></div>
+<?php endif; ?>
+
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-lg-8">
         <div class="card shadow">
-            <div class="card-body p-4">
-                <h3 class="mb-4"><i class="bi bi-plus-circle"></i> Book an Appointment</h3>
-                <?php if ($success): ?>
-                    <div class="alert alert-success"><?= $success ?></div>
-                <?php endif; ?>
-                <?php if ($error): ?>
-                    <div class="alert alert-danger"><?= $error ?></div>
-                <?php endif; ?>
+            <div class="card-body p-4 p-lg-5">
                 <form method="POST">
-                    <div class="mb-3">
-                        <label class="form-label">Select Doctor</label>
-                        <select name="doctor_id" class="form-select form-select-lg" required onchange="loadSchedule(this.value)">
-                            <option value="">-- Choose Doctor --</option>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Select Doctor</label>
+                        <select name="doctor_id" class="form-select form-select-lg" required>
+                            <option value="">-- Choose a doctor --</option>
                             <?php foreach ($doctors as $doc): ?>
-                            <option value="<?= $doc['id'] ?>">Dr. <?= htmlspecialchars($doc['first_name'] . ' ' . $doc['last_name']) ?> (<?= htmlspecialchars($doc['specialization']) ?>)</option>
+                            <option value="<?= $doc['id'] ?>">Dr. <?= htmlspecialchars($doc['first_name'] . ' ' . $doc['last_name']) ?> — <?= htmlspecialchars($doc['specialization'] ?? 'General') ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Appointment Date</label>
-                        <input type="date" name="appointment_date" class="form-control form-control-lg" min="<?= date('Y-m-d') ?>" required>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Appointment Date</label>
+                            <input type="date" name="appointment_date" class="form-control form-control-lg" min="<?= date('Y-m-d') ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Appointment Time</label>
+                            <input type="time" name="appointment_time" class="form-control form-control-lg" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Appointment Time</label>
-                        <input type="time" name="appointment_time" class="form-control form-control-lg" required>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Notes <span class="text-muted fw-normal">(optional)</span></label>
+                        <textarea name="notes" class="form-control" rows="4" placeholder="Any concerns, symptoms, or special requests..."></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Notes (optional)</label>
-                        <textarea name="notes" class="form-control" rows="3" placeholder="Any concerns or special requests..."></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-lg w-100"><i class="bi bi-check-circle"></i> Book Appointment</button>
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-check-circle me-2"></i>Book Appointment
+                    </button>
                 </form>
             </div>
         </div>

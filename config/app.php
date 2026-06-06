@@ -1,7 +1,9 @@
 <?php
 session_start();
 
-define('BASE_URL', 'http://localhost/capstone');
+$baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+$basePath = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/\\');
+define('BASE_URL', $baseUrl . ($basePath !== '/' ? $basePath : ''));
 define('APP_NAME', 'Mindalano Specialist Hospital - Appointment System');
 
 define('UPLOAD_PATH', __DIR__ . '/../uploads/appointments/');
