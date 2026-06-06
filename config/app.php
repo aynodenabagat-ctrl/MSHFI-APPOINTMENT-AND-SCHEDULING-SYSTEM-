@@ -2,8 +2,10 @@
 session_start();
 
 $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
-$basePath = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/\\');
-define('BASE_URL', $baseUrl . ($basePath !== '/' ? $basePath : ''));
+$projectRoot = str_replace('\\', '/', dirname(__DIR__));
+$docRoot = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'] ?? $projectRoot);
+$basePath = str_starts_with($projectRoot, $docRoot) ? substr($projectRoot, strlen($docRoot)) : '';
+define('BASE_URL', $baseUrl . $basePath);
 define('APP_NAME', 'Mindalano Specialist Hospital - Appointment System');
 
 define('UPLOAD_PATH', __DIR__ . '/../uploads/appointments/');
