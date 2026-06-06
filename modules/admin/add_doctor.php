@@ -17,6 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $contact = trim($_POST['contact'] ?? '');
 
     if ($username && $email && $password && $firstName && $lastName) {
+        if (strlen($password) < 6) {
+            $error = 'Password must be at least 6 characters.';
+        } else {
         $check = $pdo->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
         $check->execute([$email, $username]);
         if ($check->fetch()) {
@@ -30,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("INSERT INTO doctors (user_id, first_name, last_name, specialization, contact) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([$userId, $firstName, $lastName, $specialization, $contact]);
             $success = 'Doctor account created successfully!';
+        }
         }
     } else {
         $error = 'Please fill in all required fields.';

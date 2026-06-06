@@ -11,6 +11,7 @@ $todayAppts = (int)$pdo->query("SELECT COUNT(*) FROM appointments WHERE appointm
 $totalAppointments = (int)$pdo->query("SELECT COUNT(*) FROM appointments")->fetchColumn();
 $pendingAppts = (int)$pdo->query("SELECT COUNT(*) FROM appointments WHERE status = 'pending'")->fetchColumn();
 $completedAppts = (int)$pdo->query("SELECT COUNT(*) FROM appointments WHERE status = 'completed'")->fetchColumn();
+$cancelledAppts = (int)$pdo->query("SELECT COUNT(*) FROM appointments WHERE status = 'cancelled'")->fetchColumn();
 
 $stmt = $pdo->query("SELECT u.* FROM users u ORDER BY u.created_at DESC LIMIT 5");
 $recentUsers = $stmt->fetchAll();
@@ -93,8 +94,8 @@ $recentUsers = $stmt->fetchAll();
     </div>
     <div class="col-lg-3 col-6">
         <div class="card text-center py-3">
-            <div class="stat-number text-info" style="font-size: 1.5rem;"><?= $totalDoctors + $totalPatients ?></div>
-            <div class="text-muted small">Active Users</div>
+            <div class="stat-number text-danger" style="font-size: 1.5rem;"><?= $cancelledAppts ?></div>
+            <div class="text-muted small">Cancelled</div>
         </div>
     </div>
 </div>

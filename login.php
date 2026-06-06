@@ -4,7 +4,13 @@ require_once 'config/database.php';
 
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$maxAttempts = 5;
+$blockDuration = 900;
+
+if (isset($_SESSION['login_block_until']) && time() < $_SESSION['login_block_until']) {
+    $remaining = ceil(($_SESSION['login_block_until'] - time()) / 60);
+    $error = "Too many login attempts. Try again in $remaining minute(s).";
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $login = trim($_POST['login'] ?? '');
     $password = $_POST['password'] ?? '';
 
@@ -14,12 +20,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
+            session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_role'] = $user['role'];
             $_SESSION['user_name'] = trim($user['first_name'] . ' ' . $user['last_name']) ?: $user['username'];
+            unset($_SESSION['login_attempts'], $_SESSION['login_block_until']);
             header('Location: modules/' . $user['role'] . '/dashboard.php');
             exit;
         } else {
+            $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
+            if ($_SESSION['login_attempts'] >= $maxAttempts) {
+                $_SESSION['login_block_until'] = time() + $blockDuration;
+                $_SESSION['login_attempts'] = 0;
+            }
             $error = 'Invalid email/username or password.';
         }
     } else {

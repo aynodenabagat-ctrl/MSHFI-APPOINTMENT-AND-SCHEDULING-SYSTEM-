@@ -15,6 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lastName = trim($_POST['last_name'] ?? '');
 
     if ($username && $email && $password && $firstName && $lastName) {
+        if (strlen($password) < 6) {
+            $error = 'Password must be at least 6 characters.';
+        } else {
         $check = $pdo->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
         $check->execute([$email, $username]);
         if ($check->fetch()) {
@@ -24,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("INSERT INTO users (username, email, password, first_name, last_name, role) VALUES (?, ?, ?, ?, ?, 'secretary')");
             $stmt->execute([$username, $email, $hash, $firstName, $lastName]);
             $success = 'Staff account created successfully!';
+        }
         }
     } else {
         $error = 'Please fill in all required fields.';

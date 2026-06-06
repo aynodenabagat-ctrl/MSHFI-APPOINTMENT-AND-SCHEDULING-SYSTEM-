@@ -5,12 +5,23 @@ requireRole('admin');
 require_once __DIR__ . '/../../config/database.php';
 
 $csrfToken = generateCsrfToken();
+$search = trim($_GET['search'] ?? '');
 
-$stmt = $pdo->query("
-    SELECT u.id, u.username, u.email, u.first_name, u.last_name, u.role, u.created_at
-    FROM users u
-    ORDER BY u.created_at DESC
-");
+if ($search) {
+    $stmt = $pdo->prepare("
+        SELECT u.id, u.username, u.email, u.first_name, u.last_name, u.role, u.created_at
+        FROM users u
+        WHERE u.first_name LIKE ? OR u.last_name LIKE ? OR u.email LIKE ? OR u.username LIKE ?
+        ORDER BY u.created_at DESC
+    ");
+    $stmt->execute(["%$search%", "%$search%", "%$search%", "%$search%"]);
+} else {
+    $stmt = $pdo->query("
+        SELECT u.id, u.username, u.email, u.first_name, u.last_name, u.role, u.created_at
+        FROM users u
+        ORDER BY u.created_at DESC
+    ");
+}
 $users = $stmt->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
@@ -32,6 +43,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
         <a href="add_staff.php" class="btn btn-primary"><i class="bi bi-person-plus"></i> Add Staff</a>
     </div>
 </div>
+
+<form method="GET" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="search" class="form-control" placeholder="Search by name, email, or username..." value="<?= htmlspecialchars($search) ?>">
+        <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
+        <?php if ($search): ?>
+            <a href="manage_users.php" class="btn btn-outline-secondary"><i class="bi bi-x"></i> Clear</a>
+        <?php endif; ?>
+    </div>
+</form>
 
 <div class="card shadow">
     <div class="card-body">

@@ -17,6 +17,12 @@ try {
     // Switch to database
     $pdo->exec("USE mindalano_hospital");
 
+    $lockFile = __DIR__ . '/.setup_complete';
+    if (file_exists($lockFile)) {
+        echo "Setup has already been completed. <a href='login.php'>Go to Login</a>";
+        exit;
+    }
+
     // Create tables
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS users (
@@ -172,6 +178,8 @@ try {
     } else {
         echo "Admin account already exists.<br>";
     }
+
+    file_put_contents($lockFile, date('Y-m-d H:i:s'));
 
     echo "<br><strong>Setup completed successfully!</strong>";
     echo "<br><br><a href='login.php'>Go to Login Page</a>";
